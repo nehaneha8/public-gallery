@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { sql } from '../_lib/db';
+import { sql } from '../_lib/db.js';
 import bcrypt from 'bcryptjs';
-import { signSession, setSessionCookie } from '../_lib/session';
+import { signSession, setSessionCookie } from '../_lib/session.js';
 
 function slugify(name: string): string {
   const base = name

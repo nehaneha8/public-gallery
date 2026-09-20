@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import sharp from 'sharp';
 import { put } from '@vercel/blob';
-import { getSessionUserId } from './_lib/session';
+import { getSessionUserId } from './_lib/session.js';
 
 // Raw image bytes in the body (Content-Type: image/*), not multipart or
 // JSON/base64 — simplest to parse without a form-data library, and avoids
