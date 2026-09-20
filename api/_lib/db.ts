@@ -6,8 +6,20 @@ import { Pool, type QueryResult } from 'pg';
 // Cached at module scope so warm serverless invocations reuse the pool
 // instead of opening a new connection every request.
 function connectionString(): string {
-  const url = process.env.POSTGRES_URL ?? process.env.DATABASE_URL;
-  if (!url) throw new Error('POSTGRES_URL (or DATABASE_URL) env var is not set');
+  // Supabase's Vercel integration doesn't always set POSTGRES_URL — check
+  // the pooled Prisma URL and the direct non-pooling URL too, in that
+  // order (pooled preferred, to avoid exhausting Postgres' connection
+  // limit across concurrent serverless invocations).
+  const url =
+    process.env.POSTGRES_URL ??
+    process.env.POSTGRES_PRISMA_URL ??
+    process.env.POSTGRES_URL_NON_POOLING ??
+    process.env.DATABASE_URL;
+  if (!url) {
+    throw new Error(
+      'No Postgres connection string env var found (checked POSTGRES_URL, POSTGRES_PRISMA_URL, POSTGRES_URL_NON_POOLING, DATABASE_URL)',
+    );
+  }
   return url;
 }
 
