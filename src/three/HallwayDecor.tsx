@@ -125,51 +125,90 @@ function PendantLight({ z }: { z: number }) {
   );
 }
 
+// Repeating decor spaced along the hallway (rather than hand-placed) so it
+// scales to whatever length galleryLayout.ts computes for a given gallery,
+// instead of assuming the original fixed ~21m hallway.
+const LANTERN_SPACING = 5;
+const TABLE_SPACING = 6;
+const PENDANT_SPACING = 7.6;
+const VINE_SPACING = 5.5;
+
+function evenlySpaced(usableStart: number, usableEnd: number, spacing: number, minCount: number): number[] {
+  const span = usableStart - usableEnd;
+  const count = Math.max(minCount, Math.round(span / spacing) + 1);
+  if (count === 1) return [(usableStart + usableEnd) / 2];
+  const step = span / (count - 1);
+  return Array.from({ length: count }, (_, i) => usableStart - i * step);
+}
+
 export default function HallwayDecor() {
+  // Read fresh every render — HALL_BACK_Z is recomputed per-gallery.
+  const centerZ = (HALL_FRONT_Z + HALL_BACK_Z) / 2;
+  const totalLength = HALL_FRONT_Z - HALL_BACK_Z;
+  // Stay clear of the entrance nook and the end wall.
+  const usableStart = HALL_FRONT_Z - 3;
+  const usableEnd = HALL_BACK_Z + 1.5;
+
+  const lanternZs = evenlySpaced(usableStart, usableEnd, LANTERN_SPACING, 2);
+  const tableZs = evenlySpaced(usableStart - 1, usableEnd + 1, TABLE_SPACING, 1);
+  const pendantZs = evenlySpaced(usableStart - 1.5, usableEnd + 1.5, PENDANT_SPACING, 1);
+  const vineZs = evenlySpaced(usableStart - 2, usableEnd + 2, VINE_SPACING, 1);
+  const plantZs = evenlySpaced(usableStart, usableEnd, LANTERN_SPACING * 0.85, 2);
+
   return (
     <group>
       {/* Baseboard trim */}
-      <mesh position={[-HALL_HALF_WIDTH + 0.02, 0.05, (HALL_FRONT_Z + HALL_BACK_Z) / 2]}>
-        <boxGeometry args={[0.04, 0.1, HALL_FRONT_Z - HALL_BACK_Z]} />
+      <mesh position={[-HALL_HALF_WIDTH + 0.02, 0.05, centerZ]}>
+        <boxGeometry args={[0.04, 0.1, totalLength]} />
         <meshStandardMaterial color="#231810" roughness={0.8} />
       </mesh>
-      <mesh position={[HALL_HALF_WIDTH - 0.02, 0.05, (HALL_FRONT_Z + HALL_BACK_Z) / 2]}>
-        <boxGeometry args={[0.04, 0.1, HALL_FRONT_Z - HALL_BACK_Z]} />
+      <mesh position={[HALL_HALF_WIDTH - 0.02, 0.05, centerZ]}>
+        <boxGeometry args={[0.04, 0.1, totalLength]} />
         <meshStandardMaterial color="#231810" roughness={0.8} />
       </mesh>
       {/* Crown molding */}
-      <mesh
-        position={[-HALL_HALF_WIDTH + 0.03, HALL_HEIGHT - 0.06, (HALL_FRONT_Z + HALL_BACK_Z) / 2]}
-      >
-        <boxGeometry args={[0.06, 0.09, HALL_FRONT_Z - HALL_BACK_Z]} />
+      <mesh position={[-HALL_HALF_WIDTH + 0.03, HALL_HEIGHT - 0.06, centerZ]}>
+        <boxGeometry args={[0.06, 0.09, totalLength]} />
         <meshStandardMaterial color="#1c1410" roughness={0.9} />
       </mesh>
-      <mesh
-        position={[HALL_HALF_WIDTH - 0.03, HALL_HEIGHT - 0.06, (HALL_FRONT_Z + HALL_BACK_Z) / 2]}
-      >
-        <boxGeometry args={[0.06, 0.09, HALL_FRONT_Z - HALL_BACK_Z]} />
+      <mesh position={[HALL_HALF_WIDTH - 0.03, HALL_HEIGHT - 0.06, centerZ]}>
+        <boxGeometry args={[0.06, 0.09, totalLength]} />
         <meshStandardMaterial color="#1c1410" roughness={0.9} />
       </mesh>
 
-      {/* Wall sconces — real flickering light sources */}
-      <Lantern position={[HALL_HALF_WIDTH, 2.15, -2]} rotationY={-Math.PI / 2} />
-      <Lantern position={[-HALL_HALF_WIDTH, 2.15, -7]} rotationY={Math.PI / 2} />
-      <Lantern position={[HALL_HALF_WIDTH, 2.15, -12]} rotationY={-Math.PI / 2} />
-      <Lantern position={[-HALL_HALF_WIDTH, 2.15, -17.3]} rotationY={Math.PI / 2} />
+      {/* Wall sconces — real flickering light sources, alternating sides */}
+      {lanternZs.map((z, i) => (
+        <Lantern
+          key={z}
+          position={[i % 2 === 0 ? HALL_HALF_WIDTH : -HALL_HALF_WIDTH, 2.15, z]}
+          rotationY={i % 2 === 0 ? -Math.PI / 2 : Math.PI / 2}
+        />
+      ))}
 
       <ConsoleVignette />
-      <SideTable position={[-1.13, 0, -7.6]} rotationY={Math.PI / 2} />
-      <SideTable position={[1.13, 0, -13.4]} rotationY={-Math.PI / 2} />
-      <PendantLight z={-4.2} />
-      <PendantLight z={-11.8} />
+      {tableZs.map((z, i) => (
+        <SideTable
+          key={z}
+          position={[i % 2 === 0 ? -1.13 : 1.13, 0, z]}
+          rotationY={i % 2 === 0 ? Math.PI / 2 : -Math.PI / 2}
+        />
+      ))}
+      {pendantZs.map((z) => (
+        <PendantLight key={z} z={z} />
+      ))}
 
-      <HangingVine position={[-HALL_HALF_WIDTH + 0.02, 2.55, -6]} rotationY={Math.PI / 2} length={0.8} />
-      <HangingVine position={[HALL_HALF_WIDTH - 0.02, 2.55, -11.5]} rotationY={-Math.PI / 2} length={0.65} />
+      {vineZs.map((z, i) => (
+        <HangingVine
+          key={z}
+          position={[i % 2 === 0 ? -HALL_HALF_WIDTH + 0.02 : HALL_HALF_WIDTH - 0.02, 2.55, z]}
+          rotationY={i % 2 === 0 ? Math.PI / 2 : -Math.PI / 2}
+          length={0.75}
+        />
+      ))}
 
-      <Plant position={[-1.15, 0, 1.3]} />
-      <Plant position={[1.15, 0, -4.2]} />
-      <Plant position={[-1.15, 0, -10.8]} />
-      <Plant position={[1.15, 0, -15]} />
+      {plantZs.map((z, i) => (
+        <Plant key={z} position={[i % 2 === 0 ? -1.15 : 1.15, 0, z]} />
+      ))}
     </group>
   );
 }

@@ -2,11 +2,6 @@ import { useState, type CSSProperties } from 'react';
 import { GLOW_TEXT_STYLE } from '../ui/glowText';
 import { navigate } from '../routes/router';
 
-const LINKS = [
-  { label: 'My Art', path: '/gallery' },
-  { label: 'My Experience', path: '/experience' },
-] as const;
-
 function GlowLink({ label, path }: { label: string; path: string }) {
   const [hovered, setHovered] = useState(false);
 
@@ -49,9 +44,7 @@ export default function LandingPage() {
         padding: '0 16px',
       }}
     >
-      {LINKS.map((link) => (
-        <GlowLink key={link.path} label={link.label} path={link.path} />
-      ))}
+      <GlowLink label="Enter Gallery" path="/gallery" />
     </div>
   );
 }

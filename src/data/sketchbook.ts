@@ -1,26 +1,15 @@
 import type { Pose } from '../store/useSceneStore';
 
-// Drop future sketch photos here — each entry is one page, shown two at a
-// time (a left/right spread) in the order listed. Process them through
-// scripts/process-art.mjs first (or a similar crop+compress pass) and point
-// `src` at the resulting /art/... path, e.g.:
-//   { src: '/art/sketch1.webp' },
-//   { src: '/art/sketch2.webp' },
+// Populated at gallery-load time by galleryLayout.ts's applyGalleryConfig().
 export interface SketchPage {
   src: string;
 }
 
-// TEMPORARY placeholders (reusing existing processed art) so the page-flip
-// arrows have something to flip between while you test. Replace this array
-// with your real sketch photos whenever you're ready — see the note above.
-export const sketchPages: SketchPage[] = [
-  { src: '/art/suits.webp' },
-  { src: '/art/gm.webp' },
-  { src: '/art/dragon.webp' },
-  { src: '/art/Archie.webp' },
-  { src: '/art/backpack.webp' },
-  { src: '/art/pressure.webp' },
-];
+export let sketchPages: SketchPage[] = [];
+
+export function setSketchPages(pages: SketchPage[]) {
+  sketchPages = pages;
+}
 
 export interface Spread {
   left: string | null;
@@ -39,12 +28,19 @@ export function getSpreads(): Spread[] {
 }
 
 // Podium placement — off the walking centerline (x=0) so the camera tween
-// between hallway waypoints never passes through it, near the end of the
-// hallway per the brief. Rotated perpendicular to the hallway (facing +X,
-// out toward the centerline) rather than down its length.
-export const PODIUM_POSITION: [number, number, number] = [-0.85, 0, -16.6];
-export const PODIUM_ROTATION_Y = Math.PI / 2;
-export const PODIUM_VIEWING_OFFSET = 0.95;
+// between hallway waypoints never passes through it. Computed per-gallery
+// from the hallway length by galleryLayout.ts (near the end of the
+// hallway, rotated perpendicular to it, facing +X out toward the
+// centerline).
+export let PODIUM_POSITION: [number, number, number] = [-0.85, 0, -16.6];
+export let PODIUM_ROTATION_Y = Math.PI / 2;
+export let PODIUM_VIEWING_OFFSET = 0.95;
+
+export function setPodium(position: [number, number, number], rotationY: number, viewingOffset: number) {
+  PODIUM_POSITION = position;
+  PODIUM_ROTATION_Y = rotationY;
+  PODIUM_VIEWING_OFFSET = viewingOffset;
+}
 
 const EYE_HEIGHT = 1.6;
 const BOOK_LOOK_HEIGHT = 1.05;

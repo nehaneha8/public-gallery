@@ -14,13 +14,19 @@ export default function ReturnHomeButton() {
 
   const handleClick = () => {
     const state = useSceneStore.getState();
-    if (state.cameraMode === 'VIEWING_PAINTING' || state.cameraMode === 'VIEWING_BOOK') {
-      // From a painting or the book, "back" means the checkpoint you were
-      // just standing at, not a full reset to the entrance.
+    if (
+      state.cameraMode === 'VIEWING_PAINTING' ||
+      state.cameraMode === 'VIEWING_BOOK' ||
+      state.cameraMode === 'VIEWING_ABOUT'
+    ) {
+      // From a painting, the book, or the about frame, "back" means the
+      // checkpoint you were just standing at, not a full reset to the
+      // entrance.
       const current = waypointById.get(state.activeWaypointId);
       if (!current) return;
       if (state.cameraMode === 'VIEWING_PAINTING') state.returnFromArtwork(waypointPose(current));
-      else state.returnFromBook(waypointPose(current));
+      else if (state.cameraMode === 'VIEWING_BOOK') state.returnFromBook(waypointPose(current));
+      else state.returnFromAbout(waypointPose(current));
       return;
     }
     const entrance = waypointById.get('entrance');
@@ -47,7 +53,7 @@ export default function ReturnHomeButton() {
         cursor: 'pointer',
       }}
     >
-      {cameraMode === 'VIEWING_PAINTING' || cameraMode === 'VIEWING_BOOK'
+      {cameraMode === 'VIEWING_PAINTING' || cameraMode === 'VIEWING_BOOK' || cameraMode === 'VIEWING_ABOUT'
         ? '← step back'
         : '← return to the hallway'}
     </button>

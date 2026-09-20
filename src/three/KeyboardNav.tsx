@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Html, useTexture } from '@react-three/drei';
+import { Html } from '@react-three/drei';
 import { artworks, getViewingPose } from '../data/artworks';
 import { waypoints, waypointPose, getNearestWaypointId } from '../data/waypoints';
 import { useSceneStore } from '../store/useSceneStore';
-import { HALL_BACK_Z, DOORWAY_HALF_WIDTH } from './hallwayLayout';
 import { PODIUM_POSITION, getBookViewingPose } from '../data/sketchbook';
+import { about, ABOUT_POSITION, getAboutViewingPose } from '../data/about';
 
 interface Hotspot {
   id: string;
@@ -40,16 +40,17 @@ function useHotspots(): Hotspot[] {
         },
       }));
 
-    const doorSpot: Hotspot = {
-      id: 'door',
-      position: [-DOORWAY_HALF_WIDTH, 1.1, HALL_BACK_Z + 0.1],
-      activate: () => {
-        const state = useSceneStore.getState();
-        if (state.doorState === 'OPENING' || state.doorState === 'CLOSING') return;
-        if (state.doorState === 'CLOSED') useTexture.preload('/bedroom/graffiti-wall.webp');
-        state.toggleDoor();
-      },
-    };
+    const aboutSpot: Hotspot | null = about
+      ? {
+          id: 'about',
+          position: ABOUT_POSITION,
+          activate: () => {
+            const state = useSceneStore.getState();
+            if (state.cameraMode !== 'IDLE') return;
+            state.viewAbout(getAboutViewingPose(), getNearestWaypointId(ABOUT_POSITION));
+          },
+        }
+      : null;
 
     const bookSpot: Hotspot = {
       id: 'book',
@@ -64,7 +65,7 @@ function useHotspots(): Hotspot[] {
       },
     };
 
-    return [...paintingSpots, ...waypointSpots, doorSpot, bookSpot];
+    return [...paintingSpots, ...waypointSpots, bookSpot, ...(aboutSpot ? [aboutSpot] : [])];
   }, []);
 }
 

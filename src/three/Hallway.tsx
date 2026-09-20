@@ -3,21 +3,18 @@
 import { useWallpaperTexture } from './wallpaperTexture';
 import { HALL_HALF_WIDTH, HALL_HEIGHT, HALL_FRONT_Z, HALL_BACK_Z } from './hallwayLayout';
 
-const HALL_LENGTH = HALL_FRONT_Z - HALL_BACK_Z;
-const HALL_CENTER_Z = (HALL_FRONT_Z + HALL_BACK_Z) / 2;
-const HALL_WIDTH = HALL_HALF_WIDTH * 2;
-const END_SEG_WIDTH = 0.7;
-const HEADER_WIDTH = 1.2;
-const HEADER_HEIGHT = 0.4;
-
 export default function Hallway() {
+  // Read fresh every render (not module-level consts) since HALL_BACK_Z is
+  // recomputed per-gallery by galleryLayout.ts's applyGalleryConfig().
+  const HALL_LENGTH = HALL_FRONT_Z - HALL_BACK_Z;
+  const HALL_CENTER_Z = (HALL_FRONT_Z + HALL_BACK_Z) / 2;
+  const HALL_WIDTH = HALL_HALF_WIDTH * 2;
+
   // Each call's (width, height) matches that mesh's own <planeGeometry
   // args={[w,h]}> so the tile scale stays correct regardless of segment size.
   const longWallTex = useWallpaperTexture(HALL_LENGTH, HALL_HEIGHT);
   const ceilingTex = useWallpaperTexture(HALL_WIDTH, HALL_LENGTH);
   const backWallTex = useWallpaperTexture(HALL_WIDTH, HALL_HEIGHT);
-  const endSegTex = useWallpaperTexture(END_SEG_WIDTH, HALL_HEIGHT);
-  const headerTex = useWallpaperTexture(HEADER_WIDTH, HEADER_HEIGHT);
 
   return (
     <group>
@@ -64,27 +61,11 @@ export default function Hallway() {
         <meshStandardMaterial map={backWallTex} color="#c9a578" roughness={0.95} />
       </mesh>
 
-      {/* End wall with a doorway opening for the Door */}
-      <mesh position={[-0.95, HALL_HEIGHT / 2, HALL_BACK_Z]}>
-        <planeGeometry args={[END_SEG_WIDTH, HALL_HEIGHT]} />
-        <meshStandardMaterial map={endSegTex} color="#a8845c" roughness={0.95} />
-      </mesh>
-      <mesh position={[0.95, HALL_HEIGHT / 2, HALL_BACK_Z]}>
-        <planeGeometry args={[END_SEG_WIDTH, HALL_HEIGHT]} />
-        <meshStandardMaterial map={endSegTex} color="#a8845c" roughness={0.95} />
-      </mesh>
-      <mesh position={[0, 2.4, HALL_BACK_Z]}>
-        <planeGeometry args={[HEADER_WIDTH, HEADER_HEIGHT]} />
-        <meshStandardMaterial map={headerTex} color="#a8845c" roughness={0.95} />
-      </mesh>
-      {/* Door frame posts */}
-      <mesh position={[-0.6, 1.1, HALL_BACK_Z + 0.03]}>
-        <boxGeometry args={[0.08, 2.2, 0.1]} />
-        <meshStandardMaterial color="#1c1410" roughness={0.8} />
-      </mesh>
-      <mesh position={[0.6, 1.1, HALL_BACK_Z + 0.03]}>
-        <boxGeometry args={[0.08, 2.2, 0.1]} />
-        <meshStandardMaterial color="#1c1410" roughness={0.8} />
+      {/* Solid end wall — the "About the Artist" frame mounts on this
+          (see AboutFrame.tsx) in place of the old doorway. */}
+      <mesh position={[0, HALL_HEIGHT / 2, HALL_BACK_Z]}>
+        <planeGeometry args={[HALL_WIDTH, HALL_HEIGHT]} />
+        <meshStandardMaterial map={backWallTex} color="#a8845c" roughness={0.95} />
       </mesh>
     </group>
   );

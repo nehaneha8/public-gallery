@@ -4,14 +4,13 @@ import { GLOW_TEXT_STYLE } from './glowText';
 
 const FADE_SECONDS = 1;
 const HOLD_SECONDS = 0.7;
-const TITLE_TEXT = "Welcome to Neha's Gallery";
 const HINT_TEXT = 'scroll around, click paintings, click floor, click wherever you want';
 
 // One-shot fade in / hold / fade out, gated on drei's shared load-progress
 // store rather than firing on mount — starting the moment the scene assets
 // (and any lazy chunks queued at startup) are actually ready, not while the
 // LoadingScreen is still covering the canvas.
-export default function TitleCard() {
+export default function TitleCard({ displayName }: { displayName: string }) {
   const { active, progress } = useProgress();
   const [ready, setReady] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -71,7 +70,7 @@ export default function TitleCard() {
           transition: `opacity ${FADE_SECONDS}s ease-in-out`,
         }}
       >
-        {TITLE_TEXT}
+        Welcome to {displayName} Gallery
       </div>
       <div
         style={{

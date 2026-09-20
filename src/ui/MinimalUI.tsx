@@ -8,7 +8,12 @@ export default function MinimalUI() {
   const setShowListFallback = useSceneStore((s) => s.setShowListFallback);
   const cameraMode = useSceneStore((s) => s.cameraMode);
 
-  if (showListFallback || cameraMode === 'VIEWING_PAINTING' || cameraMode === 'VIEWING_BOOK')
+  if (
+    showListFallback ||
+    cameraMode === 'VIEWING_PAINTING' ||
+    cameraMode === 'VIEWING_BOOK' ||
+    cameraMode === 'VIEWING_ABOUT'
+  )
     return null;
 
   return (

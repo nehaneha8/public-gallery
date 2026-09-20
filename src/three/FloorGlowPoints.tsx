@@ -6,7 +6,12 @@ export default function FloorGlowPoints() {
   const activeWaypointId = useSceneStore((s) => s.activeWaypointId);
   const cameraMode = useSceneStore((s) => s.cameraMode);
 
-  if (cameraMode === 'VIEWING_PAINTING' || cameraMode === 'VIEWING_BOOK') return null;
+  if (
+    cameraMode === 'VIEWING_PAINTING' ||
+    cameraMode === 'VIEWING_BOOK' ||
+    cameraMode === 'VIEWING_ABOUT'
+  )
+    return null;
 
   return (
     <>

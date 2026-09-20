@@ -12,12 +12,6 @@ import {
   sketchPages,
 } from '../data/sketchbook';
 
-// Warm the texture cache for every sketch up front, so switching a
-// PageFace's `src` (on flip completion, or on the flip-vacated slot below)
-// never hits an un-cached useTexture() call mid-interaction — there'd be
-// nothing to suspend on, so nothing for the old page to linger behind.
-useTexture.preload(sketchPages.map((p) => p.src));
-
 const PEDESTAL_HEIGHT = 0.95;
 const TOP_Y = PEDESTAL_HEIGHT;
 const BOOK_HALF_WIDTH = 0.23;
@@ -373,6 +367,17 @@ export default function Podium() {
   // time Podium re-renders, which would re-render FlipPage too, undoing
   // the point of driving its visibility purely imperatively.
   const completePageFlip = useSceneStore((s) => s.completePageFlip);
+
+  // Warm the texture cache for every sketch up front, so switching a
+  // PageFace's `src` (on flip completion, or on the flip-vacated slot
+  // below) never hits an un-cached useTexture() call mid-interaction —
+  // there'd be nothing to suspend on, so nothing for the old page to
+  // linger behind. Deferred to mount time (not module load) since
+  // sketchPages is only populated once the gallery config is applied.
+  useEffect(() => {
+    useTexture.preload(sketchPages.map((p) => p.src));
+  }, []);
+
   const spread = spreads[Math.min(currentSpread, spreads.length - 1)];
   const targetIndex =
     flipDirection === 'next' ? currentSpread + 1 : flipDirection === 'prev' ? currentSpread - 1 : null;

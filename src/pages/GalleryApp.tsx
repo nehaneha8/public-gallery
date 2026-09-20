@@ -1,4 +1,4 @@
-import { Suspense, lazy, useMemo } from 'react';
+import { Suspense, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import CameraRig from '../three/CameraRig';
@@ -7,7 +7,7 @@ import Hallway from '../three/Hallway';
 import HallwayDecor from '../three/HallwayDecor';
 import PaintingWall from '../three/PaintingWall';
 import FloorGlowPoints from '../three/FloorGlowPoints';
-import Door from '../three/Door';
+import AboutFrame from '../three/AboutFrame';
 import Podium from '../three/Podium';
 import Atmosphere from '../three/Atmosphere';
 import KeyboardNav from '../three/KeyboardNav';
@@ -15,16 +15,23 @@ import LoadingScreen from '../ui/LoadingScreen';
 import TitleCard from '../ui/TitleCard';
 import PaintingFocusOverlay from '../ui/PaintingFocusOverlay';
 import BookFocusOverlay from '../ui/BookFocusOverlay';
+import AboutFocusOverlay from '../ui/AboutFocusOverlay';
 import MinimalUI from '../ui/MinimalUI';
 import ReturnHomeButton from '../ui/ReturnHomeButton';
 import AccessibleListFallback, { hasWebGL2 } from '../ui/AccessibleListFallback';
 import { useSceneStore } from '../store/useSceneStore';
+import { applyGalleryConfig } from '../three/galleryLayout';
+import { fixtureGallery } from '../data/fixtureGallery';
+import type { GalleryConfig } from '../data/galleryConfig';
 
-const Bedroom = lazy(() => import('../three/Bedroom'));
-
-export default function GalleryApp() {
+export default function GalleryApp({ config = fixtureGallery }: { config?: GalleryConfig }) {
   const webgl2 = useMemo(hasWebGL2, []);
   const showListFallback = useSceneStore((s) => s.showListFallback);
+
+  // Compute the whole gallery's layout (artwork positions, waypoints,
+  // hallway length, podium, about placement) once per config, before
+  // anything below reads from src/data/{artworks,waypoints,sketchbook,about}.
+  useMemo(() => applyGalleryConfig(config), [config]);
 
   if (!webgl2) {
     return <AccessibleListFallback forced />;
@@ -44,19 +51,17 @@ export default function GalleryApp() {
           <HallwayDecor />
           <PaintingWall />
           <FloorGlowPoints />
-          <Door />
+          <AboutFrame />
           <Podium />
           <Atmosphere />
           <KeyboardNav />
-          <Suspense fallback={null}>
-            <Bedroom />
-          </Suspense>
         </Suspense>
       </Canvas>
       <LoadingScreen />
-      <TitleCard />
+      <TitleCard displayName={config.displayName} />
       <PaintingFocusOverlay />
       <BookFocusOverlay />
+      <AboutFocusOverlay />
       <MinimalUI />
       <ReturnHomeButton />
       {showListFallback && <AccessibleListFallback forced={false} />}

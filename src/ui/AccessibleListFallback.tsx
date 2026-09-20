@@ -106,7 +106,7 @@ export default function AccessibleListFallback({ forced }: { forced: boolean }) 
             onClick={() => setShowListFallback(false)}
             style={{ ...buttonStyle, marginBottom: 28 }}
           >
-            ← Back to the 3D hallway
+            ← Back to the gallery
           </button>
         )}
         <div style={{ display: 'grid', gap: 24 }}>

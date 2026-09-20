@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 
-export type CameraMode = 'IDLE' | 'MOVING' | 'VIEWING_PAINTING' | 'VIEWING_BOOK';
-export type DoorState = 'CLOSED' | 'OPENING' | 'OPEN' | 'CLOSING';
+export type CameraMode = 'IDLE' | 'MOVING' | 'VIEWING_PAINTING' | 'VIEWING_BOOK' | 'VIEWING_ABOUT';
 export type BookState = 'CLOSED' | 'OPENING' | 'OPEN';
 
 export interface Pose {
@@ -14,7 +13,6 @@ interface SceneState {
   activeWaypointId: string;
   previousWaypointId: string | null;
   viewedArtworkId: string | null;
-  doorState: DoorState;
   bookState: BookState;
   currentSpread: number;
   flipDirection: 'next' | 'prev' | null;
@@ -33,8 +31,8 @@ interface SceneState {
   requestPageFlip: (direction: 'next' | 'prev') => void;
   completePageFlip: (newSpread: number) => void;
   arrivedAtTarget: () => void;
-  toggleDoor: () => void;
-  setDoorState: (state: DoorState) => void;
+  viewAbout: (pose: Pose, nearestWaypointId: string) => void;
+  returnFromAbout: (pose: Pose) => void;
   returnToHallwayStart: (pose: Pose) => void;
   setShowListFallback: (show: boolean) => void;
 }
@@ -48,7 +46,6 @@ export const useSceneStore = create<SceneState>((set, get) => ({
   activeWaypointId: 'entrance',
   previousWaypointId: null,
   viewedArtworkId: null,
-  doorState: 'CLOSED',
   bookState: 'CLOSED',
   currentSpread: 0,
   flipDirection: null,
@@ -141,14 +138,25 @@ export const useSceneStore = create<SceneState>((set, get) => ({
     set({ cameraMode: get().afterMoveMode, moveTarget: null });
   },
 
-  toggleDoor: () => {
-    const state = get().doorState;
-    if (state === 'CLOSED') set({ doorState: 'OPENING' });
-    else if (state === 'OPEN') set({ doorState: 'CLOSING' });
-    // mid-swing (OPENING/CLOSING) — ignore repeat clicks
+  viewAbout: (pose, nearestWaypointId) => {
+    if (get().cameraMode !== 'IDLE') return;
+    set({
+      cameraMode: 'MOVING',
+      previousWaypointId: get().activeWaypointId,
+      activeWaypointId: nearestWaypointId,
+      moveTarget: pose,
+      afterMoveMode: 'VIEWING_ABOUT',
+    });
   },
 
-  setDoorState: (state) => set({ doorState: state }),
+  returnFromAbout: (pose) => {
+    if (get().cameraMode !== 'VIEWING_ABOUT') return;
+    set({
+      cameraMode: 'MOVING',
+      moveTarget: pose,
+      afterMoveMode: 'IDLE',
+    });
+  },
 
   // Always-available "take me back to the start" (usable from the hallway,
   // mid-painting-view, or the bedroom) — the one navigation option that
