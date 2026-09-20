@@ -23,16 +23,32 @@ function connectionString(): string {
   return url;
 }
 
+// Newer pg-connection-string versions treat a `sslmode=require` query
+// param in the URL (which Supabase's connection strings include) as full
+// certificate-chain verification, silently overriding the explicit `ssl`
+// option below and failing against Supabase's chain with
+// SELF_SIGNED_CERT_IN_CHAIN. Stripping it and controlling SSL purely via
+// the explicit `ssl` config avoids that conflict.
+function stripSslMode(raw: string): string {
+  try {
+    const url = new URL(raw);
+    url.searchParams.delete('sslmode');
+    return url.toString();
+  } catch {
+    return raw;
+  }
+}
+
 let pool: Pool | undefined;
 
 function getPool(): Pool {
   if (!pool) {
     pool = new Pool({
-      connectionString: connectionString(),
-      // Supabase's pooled connection requires SSL; Node's default CA
-      // bundle doesn't include Supabase's, so this trusts the connection
-      // the same way @vercel/postgres and most serverless Postgres
-      // clients do rather than pinning a specific CA cert.
+      connectionString: stripSslMode(connectionString()),
+      // Supabase's connection requires SSL; Node's default CA bundle
+      // doesn't include Supabase's, so this trusts the connection the
+      // same way most serverless Postgres clients do rather than pinning
+      // a specific CA cert.
       ssl: { rejectUnauthorized: false },
       max: 1,
     });
