@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { sql } from '@vercel/postgres';
+import { sql } from '../_lib/db';
 import bcrypt from 'bcryptjs';
 import { signSession, setSessionCookie } from '../_lib/session';
 

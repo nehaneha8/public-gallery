@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { sql } from '@vercel/postgres';
+import { sql } from '../_lib/db';
 import { getSessionUserId } from '../_lib/session';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
