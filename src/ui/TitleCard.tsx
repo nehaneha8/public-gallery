@@ -10,7 +10,7 @@ const HINT_TEXT = 'scroll around, click paintings, click floor, click wherever y
 // store rather than firing on mount — starting the moment the scene assets
 // (and any lazy chunks queued at startup) are actually ready, not while the
 // LoadingScreen is still covering the canvas.
-export default function TitleCard({ displayName }: { displayName: string }) {
+export default function TitleCard({ title }: { title: string }) {
   const { active, progress } = useProgress();
   const [ready, setReady] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -70,7 +70,7 @@ export default function TitleCard({ displayName }: { displayName: string }) {
           transition: `opacity ${FADE_SECONDS}s ease-in-out`,
         }}
       >
-        Welcome to {displayName}'s Gallery
+        Welcome to {title}
       </div>
       <div
         style={{

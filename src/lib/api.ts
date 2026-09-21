@@ -30,7 +30,11 @@ export function logout() {
 }
 
 export function me() {
-  return request<{ email: string; displayName: string; slug: string }>('/api/auth/me');
+  return request<{ email: string; displayName: string; slug: string; title: string }>('/api/auth/me');
+}
+
+export function updateGalleryTitle(title: string) {
+  return request<{ title: string }>('/api/auth/me', { method: 'PATCH', body: JSON.stringify({ galleryTitle: title }) });
 }
 
 export function fetchGallery(slug: string) {
@@ -38,9 +42,7 @@ export function fetchGallery(slug: string) {
 }
 
 export function fetchDirectory() {
-  return request<{ galleries: { slug: string; displayName: string; thumbnail: string | null }[] }>(
-    '/api/galleries',
-  );
+  return request<{ galleries: { slug: string; title: string; thumbnail: string | null }[] }>('/api/galleries');
 }
 
 export async function uploadImage(file: File): Promise<{ url: string; aspectRatio: number }> {
@@ -79,4 +81,10 @@ export function deleteSketch(id: number) {
 
 export function saveAbout(input: { optedIn: boolean; photoUrl?: string; prompts: AboutPromptInput[] }) {
   return request<{ ok: true }>('/api/gallery/about', { method: 'PUT', body: JSON.stringify(input) });
+}
+
+// Wipes all gallery content (paintings, sketches, about-me) but keeps the
+// account itself — the user stays logged in.
+export function clearGallery() {
+  return request<{ ok: true }>('/api/gallery/clear', { method: 'DELETE' });
 }

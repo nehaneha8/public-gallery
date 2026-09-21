@@ -3,6 +3,8 @@ import { sql } from '../_lib/db.js';
 import bcrypt from 'bcryptjs';
 import { signSession, setSessionCookie } from '../_lib/session.js';
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function slugify(name: string): string {
   const base = name
     .toLowerCase()
@@ -16,16 +18,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method not allowed' });
 
   const { email, password, displayName } = req.body ?? {};
-  if (typeof email !== 'string' || typeof password !== 'string' || typeof displayName !== 'string') {
-    return res.status(400).json({ error: 'email, password, and displayName are required' });
+  if (typeof displayName !== 'string' || !displayName.trim()) {
+    return res.status(400).json({ error: 'Your name is required.' });
+  }
+  if (typeof email !== 'string' || !email.trim()) {
+    return res.status(400).json({ error: 'Email is required.' });
+  }
+  if (!EMAIL_PATTERN.test(email.trim())) {
+    return res.status(400).json({ error: "That doesn't look like a valid email address." });
+  }
+  if (typeof password !== 'string' || !password) {
+    return res.status(400).json({ error: 'Password is required.' });
   }
   if (password.length < 8) {
-    return res.status(400).json({ error: 'password must be at least 8 characters' });
+    return res.status(400).json({ error: 'Password must be at least 8 characters.' });
   }
 
   const existing = await sql`SELECT id FROM users WHERE email = ${email}`;
   if (existing.rows.length > 0) {
-    return res.status(409).json({ error: 'an account with that email already exists' });
+    return res.status(409).json({ error: 'An account with that email already exists.' });
   }
 
   const baseSlug = slugify(displayName);

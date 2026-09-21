@@ -1,12 +1,15 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sql } from '../_lib/db.js';
+import { resolveGalleryTitle } from '../_lib/galleryTitle.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'method not allowed' });
 
   const slug = String(req.query.slug ?? '');
-  const userRes = await sql`SELECT id, display_name FROM users WHERE slug = ${slug}`;
-  const user = userRes.rows[0] as { id: number; display_name: string } | undefined;
+  const userRes = await sql`SELECT id, display_name, gallery_title FROM users WHERE slug = ${slug}`;
+  const user = userRes.rows[0] as
+    | { id: number; display_name: string; gallery_title: string | null }
+    | undefined;
   if (!user) return res.status(404).json({ error: 'gallery not found' });
 
   const [artworksRes, sketchesRes, aboutRes] = await Promise.all([
@@ -23,6 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   return res.status(200).json({
     slug,
     displayName: user.display_name,
+    title: resolveGalleryTitle(user.display_name, user.gallery_title),
     artworks: artworksRes.rows.map((a) => ({
       id: String(a.id),
       title: a.title,

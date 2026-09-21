@@ -11,6 +11,9 @@ export default function DashboardPage() {
   const [authError, setAuthError] = useState(false);
   const [gallery, setGallery] = useState<GalleryConfig | null>(null);
   const [tab, setTab] = useState<Tab>('paintings');
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState('');
+  const [titleBusy, setTitleBusy] = useState(false);
 
   useEffect(() => {
     api
@@ -32,11 +35,50 @@ export default function DashboardPage() {
   if (authError) return null;
   if (!slug || !gallery) return null;
 
+  const startEditingTitle = () => {
+    setTitleDraft(gallery.title);
+    setEditingTitle(true);
+  };
+
+  const saveTitle = async () => {
+    setTitleBusy(true);
+    try {
+      await api.updateGalleryTitle(titleDraft);
+      setEditingTitle(false);
+      reload();
+    } finally {
+      setTitleBusy(false);
+    }
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: '#000', color: '#f0e6d8', fontFamily: 'Georgia, serif' }}>
       <div style={{ maxWidth: 760, margin: '0 auto', padding: '40px 20px 100px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 12 }}>
-          <h1 style={{ ...GLOW_TEXT_STYLE, fontSize: 24, margin: 0 }}>Your Gallery</h1>
+          {editingTitle ? (
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flex: 1, minWidth: 220 }}>
+              <input
+                value={titleDraft}
+                onChange={(e) => setTitleDraft(e.target.value)}
+                placeholder={`${gallery.displayName}'s Gallery`}
+                style={{ ...titleInputStyle }}
+                autoFocus
+              />
+              <button onClick={saveTitle} disabled={titleBusy} style={ghostButton}>
+                {titleBusy ? 'Saving…' : 'Save'}
+              </button>
+              <button onClick={() => setEditingTitle(false)} disabled={titleBusy} style={ghostButton}>
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <h1 style={{ ...GLOW_TEXT_STYLE, fontSize: 24, margin: 0 }}>{gallery.title}</h1>
+              <button onClick={startEditingTitle} aria-label="Edit gallery title" style={editIconButton}>
+                ✎
+              </button>
+            </div>
+          )}
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={() => navigate(`/g/${slug}`)} style={ghostButton}>
               View my gallery →
@@ -70,7 +112,56 @@ export default function DashboardPage() {
         {tab === 'paintings' && <PaintingsTab gallery={gallery} onChange={reload} />}
         {tab === 'sketchbook' && <SketchbookTab gallery={gallery} onChange={reload} />}
         {tab === 'about' && <AboutTab gallery={gallery} onChange={reload} />}
+
+        <DangerZone onCleared={reload} />
       </div>
+    </div>
+  );
+}
+
+function DangerZone({ onCleared }: { onCleared: () => void }) {
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleDelete = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await api.clearGallery();
+      setConfirming(false);
+      onCleared();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'something went wrong');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div style={{ marginTop: 64, paddingTop: 24, borderTop: '1px solid rgba(255,100,100,0.2)' }}>
+      <div style={{ fontSize: 13, opacity: 0.6, marginBottom: 12 }}>Danger zone</div>
+      {!confirming ? (
+        <button onClick={() => setConfirming(true)} style={dangerButton}>
+          Delete my gallery
+        </button>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start' }}>
+          <p style={{ fontSize: 13, opacity: 0.85, margin: 0 }}>
+            This permanently deletes all your paintings, sketches, and about-me content. Your account and
+            login stay — you can start uploading again right after. This can't be undone.
+          </p>
+          {error && <div style={{ color: '#ff9d9d', fontSize: 13 }}>{error}</div>}
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={handleDelete} disabled={busy} style={dangerButton}>
+              {busy ? 'Deleting…' : 'Yes, delete everything'}
+            </button>
+            <button onClick={() => setConfirming(false)} disabled={busy} style={ghostButton}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -319,6 +410,39 @@ const ghostButton: CSSProperties = {
   border: '1px solid rgba(255,176,102,0.35)',
   background: 'transparent',
   color: '#ffb066',
+  fontFamily: 'inherit',
+  fontSize: 13,
+  cursor: 'pointer',
+};
+
+const editIconButton: CSSProperties = {
+  border: 'none',
+  background: 'transparent',
+  color: '#ffb066',
+  fontSize: 16,
+  cursor: 'pointer',
+  padding: 4,
+  lineHeight: 1,
+};
+
+const titleInputStyle: CSSProperties = {
+  flex: 1,
+  minWidth: 180,
+  padding: '6px 10px',
+  borderRadius: 4,
+  border: '1px solid rgba(255,176,102,0.4)',
+  background: 'rgba(255,255,255,0.03)',
+  color: '#f0e6d8',
+  fontFamily: 'inherit',
+  fontSize: 20,
+};
+
+const dangerButton: CSSProperties = {
+  padding: '8px 16px',
+  borderRadius: 4,
+  border: '1px solid rgba(255,100,100,0.4)',
+  background: 'transparent',
+  color: '#ff9d9d',
   fontFamily: 'inherit',
   fontSize: 13,
   cursor: 'pointer',

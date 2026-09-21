@@ -6,7 +6,7 @@ import AuthButtons from '../ui/AuthButtons';
 
 interface GalleryListing {
   slug: string;
-  displayName: string;
+  title: string;
   thumbnail: string | null;
 }
 
@@ -21,9 +21,7 @@ export default function DirectoryPage() {
       .catch((e) => setError(e.message));
   }, []);
 
-  const filtered = galleries?.filter((g) =>
-    g.displayName.toLowerCase().includes(query.trim().toLowerCase()),
-  );
+  const filtered = galleries?.filter((g) => g.title.toLowerCase().includes(query.trim().toLowerCase()));
 
   return (
     <div
@@ -90,7 +88,7 @@ export default function DirectoryPage() {
                   background: g.thumbnail ? `#1a1310 url(${g.thumbnail}) center/cover` : '#1a1310',
                 }}
               />
-              <div style={{ padding: '12px 14px', fontSize: 16 }}>{g.displayName}'s Gallery</div>
+              <div style={{ padding: '12px 14px', fontSize: 16 }}>{g.title}</div>
             </button>
           ))}
         </div>

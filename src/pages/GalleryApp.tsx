@@ -64,7 +64,7 @@ export default function GalleryApp({ config = fixtureGallery }: { config?: Galle
         </Suspense>
       </Canvas>
       <LoadingScreen />
-      <TitleCard displayName={config.displayName} />
+      <TitleCard title={config.title} />
       <PaintingFocusOverlay />
       <BookFocusOverlay />
       <AboutFocusOverlay />

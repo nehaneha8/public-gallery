@@ -6,7 +6,8 @@ import type { GalleryConfig } from './galleryConfig';
 // roughly match the original hand-placed layout.
 export const fixtureGallery: GalleryConfig = {
   slug: 'neha',
-  displayName: "Neha's",
+  displayName: 'Neha',
+  title: "Neha's Gallery",
   artworks: [
     { id: 'scream', title: 'Spl it', description: 'Acrylic on canvas', src: '/art/scream.webp', aspectRatio: 0.7711, size: 'large' },
     { id: 'skull', title: 'In the end', description: 'Graphite on paper', src: '/art/skull.webp', aspectRatio: 0.7859, size: 'medium' },

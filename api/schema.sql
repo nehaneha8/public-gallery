@@ -8,8 +8,15 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   display_name TEXT NOT NULL,
   slug TEXT UNIQUE NOT NULL,
+  -- NULL = use the default "{display_name}'s Gallery"; set once the
+  -- artist customizes it from the dashboard.
+  gallery_title TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Existing databases (created before gallery_title existed): run this once
+-- too — harmless/no-op if the column is already there.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS gallery_title TEXT;
 
 CREATE TABLE IF NOT EXISTS about_sections (
   user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,

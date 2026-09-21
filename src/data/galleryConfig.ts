@@ -31,6 +31,10 @@ export interface AboutInput {
 export interface GalleryConfig {
   slug: string;
   displayName: string;
+  // The gallery's display title — defaults to "{displayName}'s Gallery"
+  // but the artist can fully customize it from the dashboard; always a
+  // ready-to-display string, resolved server-side.
+  title: string;
   artworks: ArtworkInput[];
   sketches: SketchInput[];
   about: AboutInput | null;

@@ -25,7 +25,18 @@ export default function AuthButtons({
         <button onClick={() => navigate('/dashboard')} style={style}>
           Edit my gallery
         </button>
-        <button onClick={() => logout().then(() => navigate('/'))} style={style}>
+        <button
+          onClick={() =>
+            logout().then(() => {
+              // A hard navigation, not the SPA `navigate()` — clicking Log
+              // out while already on `/` would otherwise no-op (same
+              // pathname means no remount), leaving the stale logged-in
+              // state on screen even though the cookie was cleared.
+              window.location.href = '/';
+            })
+          }
+          style={style}
+        >
           Log out
         </button>
       </>
