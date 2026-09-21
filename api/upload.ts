@@ -69,7 +69,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const key = `u${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.webp`;
-  const blob = await put(key, outBuffer, { access: 'public', contentType: 'image/webp' });
+  // This project has OIDC enabled for Blob access, which @vercel/blob
+  // prefers automatically — but OIDC isn't available in vercel dev's
+  // "development" environment, so it errors there even with
+  // BLOB_READ_WRITE_TOKEN also set. Passing the token explicitly bypasses
+  // that auto-detection; production/preview still auto-detect OIDC since
+  // BLOB_READ_WRITE_TOKEN isn't set there.
+  const blob = await put(key, outBuffer, {
+    access: 'public',
+    contentType: 'image/webp',
+    ...(process.env.BLOB_READ_WRITE_TOKEN ? { token: process.env.BLOB_READ_WRITE_TOKEN } : {}),
+  });
 
   return res.status(200).json({ url: blob.url, aspectRatio: Number(aspectRatio.toFixed(4)) });
 }

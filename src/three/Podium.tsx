@@ -11,6 +11,7 @@ import {
   getSpreads,
   sketchPages,
 } from '../data/sketchbook';
+import { containSize } from './imageFit';
 
 const PEDESTAL_HEIGHT = 0.95;
 const TOP_Y = PEDESTAL_HEIGHT;
@@ -42,20 +43,6 @@ function easeOutCubic(t: number) {
 
 function easeInOutQuad(t: number) {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-}
-
-// "Contain" fit — sketches aren't all the same shape as the page slot (a
-// landscape photo like a horizontal sketch vs. the portrait-ish
-// PAGE_WIDTH x PAGE_HEIGHT box), so stretching every image to exactly fill
-// the slot squashed anything that didn't already match its aspect ratio.
-// This sizes the plane down within the box instead, on whichever axis the
-// image doesn't need, preserving its real proportions.
-function containSize(imageWidth: number, imageHeight: number, boxWidth: number, boxHeight: number) {
-  const imageAspect = imageWidth / imageHeight;
-  const boxAspect = boxWidth / boxHeight;
-  return imageAspect > boxAspect
-    ? { width: boxWidth, height: boxWidth / imageAspect }
-    : { width: boxHeight * imageAspect, height: boxHeight };
 }
 
 function PageImage({ x, src }: { x: number; src: string }) {

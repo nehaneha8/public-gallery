@@ -70,7 +70,7 @@ export default function TitleCard({ displayName }: { displayName: string }) {
           transition: `opacity ${FADE_SECONDS}s ease-in-out`,
         }}
       >
-        Welcome to {displayName} Gallery
+        Welcome to {displayName}'s Gallery
       </div>
       <div
         style={{

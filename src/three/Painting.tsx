@@ -4,7 +4,7 @@ import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Artwork } from '../data/artworks';
 import { getViewingPose } from '../data/artworks';
-import { getNearestWaypointId } from '../data/waypoints';
+import { getNearestWaypointBehind } from '../data/waypoints';
 import { useSceneStore } from '../store/useSceneStore';
 
 const FRAME_MARGIN = 0.06;
@@ -46,7 +46,7 @@ export default function Painting({ artwork }: { artwork: Artwork }) {
     if (mode !== 'IDLE') return;
     useSceneStore
       .getState()
-      .viewArtwork(artwork.id, getViewingPose(artwork), getNearestWaypointId(artwork.position));
+      .viewArtwork(artwork.id, getViewingPose(artwork), getNearestWaypointBehind(artwork.position));
   };
 
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {

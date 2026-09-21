@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Html } from '@react-three/drei';
 import { artworks, getViewingPose } from '../data/artworks';
-import { waypoints, waypointPose, getNearestWaypointId } from '../data/waypoints';
+import { waypoints, waypointPose, getNearestWaypointId, getNearestWaypointBehind } from '../data/waypoints';
 import { useSceneStore } from '../store/useSceneStore';
 import { PODIUM_POSITION, getBookViewingPose } from '../data/sketchbook';
 import { about, ABOUT_POSITION, getAboutViewingPose } from '../data/about';
@@ -25,7 +25,7 @@ function useHotspots(): Hotspot[] {
         if (useSceneStore.getState().cameraMode !== 'IDLE') return;
         useSceneStore
           .getState()
-          .viewArtwork(a.id, getViewingPose(a), getNearestWaypointId(a.position));
+          .viewArtwork(a.id, getViewingPose(a), getNearestWaypointBehind(a.position));
       },
     }));
 

@@ -1,3 +1,8 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/((?!api/|@|node_modules/|src/|assets/|art/|textures/)[^.]*)",
+      "destination": "/index.html"
+    }
+  ]
 }

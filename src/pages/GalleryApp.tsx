@@ -18,6 +18,7 @@ import BookFocusOverlay from '../ui/BookFocusOverlay';
 import AboutFocusOverlay from '../ui/AboutFocusOverlay';
 import MinimalUI from '../ui/MinimalUI';
 import ReturnHomeButton from '../ui/ReturnHomeButton';
+import GalleryAuthNav from '../ui/GalleryAuthNav';
 import AccessibleListFallback, { hasWebGL2 } from '../ui/AccessibleListFallback';
 import { useSceneStore } from '../store/useSceneStore';
 import { applyGalleryConfig } from '../three/galleryLayout';
@@ -34,7 +35,12 @@ export default function GalleryApp({ config = fixtureGallery }: { config?: Galle
   useMemo(() => applyGalleryConfig(config), [config]);
 
   if (!webgl2) {
-    return <AccessibleListFallback forced />;
+    return (
+      <>
+        <AccessibleListFallback forced />
+        <GalleryAuthNav />
+      </>
+    );
   }
 
   return (
@@ -64,6 +70,7 @@ export default function GalleryApp({ config = fixtureGallery }: { config?: Galle
       <AboutFocusOverlay />
       <MinimalUI />
       <ReturnHomeButton />
+      <GalleryAuthNav />
       {showListFallback && <AccessibleListFallback forced={false} />}
     </>
   );

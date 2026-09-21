@@ -2,6 +2,7 @@ node_modules
 dist
 .DS_Store
 *.local
+.env
 *.tsbuildinfo
 
 # Raw source photos — only needed locally to (re)generate public/art via
@@ -9,3 +10,4 @@ dist
 # .webp files already tracked under public/. Kept out of git so pushes
 # don't have to carry the full-res originals.
 my_art
+.vercel

@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { about, ABOUT_POSITION, getAboutViewingPose } from '../data/about';
 import { getNearestWaypointId } from '../data/waypoints';
 import { useSceneStore } from '../store/useSceneStore';
+import { containSize } from './imageFit';
 
 const FRAME_WIDTH = 0.7;
 const FRAME_HEIGHT = 0.9;
@@ -20,11 +21,20 @@ const isHoverCapable =
 function FramedPhoto({ src }: { src: string }) {
   const texture = useTexture(src);
   texture.colorSpace = THREE.SRGBColorSpace;
+  const { width, height } = containSize(texture.image.width, texture.image.height, FRAME_WIDTH, FRAME_HEIGHT);
   return (
-    <mesh position={[0, 0, FRAME_FRONT_Z + 0.002]}>
-      <planeGeometry args={[FRAME_WIDTH, FRAME_HEIGHT]} />
-      <meshStandardMaterial map={texture} roughness={0.95} metalness={0} />
-    </mesh>
+    <>
+      {/* Matte backing fills the full frame opening; the photo — sized to
+          its own aspect ratio, not stretched to the frame's — sits on top. */}
+      <mesh position={[0, 0, FRAME_FRONT_Z + 0.001]}>
+        <planeGeometry args={[FRAME_WIDTH, FRAME_HEIGHT]} />
+        <meshStandardMaterial color="#e8dcc0" roughness={1} />
+      </mesh>
+      <mesh position={[0, 0, FRAME_FRONT_Z + 0.003]}>
+        <planeGeometry args={[width, height]} />
+        <meshStandardMaterial map={texture} roughness={0.95} metalness={0} />
+      </mesh>
+    </>
   );
 }
 

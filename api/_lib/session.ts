@@ -36,15 +36,26 @@ function verifySession(token: string): number | null {
   }
 }
 
-export function setSessionCookie(res: VercelResponse, token: string) {
+// Browsers silently drop `Secure` cookies on a plain http:// origin, which
+// is exactly what `vercel dev` serves locally on localhost — omit it
+// there. VERCEL_ENV isn't reliably set for vercel dev's function runtime,
+// so this checks the actual request host instead: real deployments are
+// always on a *.vercel.app or custom https domain, never literally
+// "localhost".
+function cookieSuffix(req: VercelRequest): string {
+  const host = req.headers.host ?? '';
+  return host.startsWith('localhost') || host.startsWith('127.0.0.1') ? '' : '; Secure';
+}
+
+export function setSessionCookie(req: VercelRequest, res: VercelResponse, token: string) {
   res.setHeader(
     'Set-Cookie',
-    `${COOKIE_NAME}=${token}; Max-Age=${MAX_AGE_SECONDS}; Path=/; HttpOnly; SameSite=Lax; Secure`,
+    `${COOKIE_NAME}=${token}; Max-Age=${MAX_AGE_SECONDS}; Path=/; HttpOnly; SameSite=Lax${cookieSuffix(req)}`,
   );
 }
 
-export function clearSessionCookie(res: VercelResponse) {
-  res.setHeader('Set-Cookie', `${COOKIE_NAME}=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax; Secure`);
+export function clearSessionCookie(req: VercelRequest, res: VercelResponse) {
+  res.setHeader('Set-Cookie', `${COOKIE_NAME}=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax${cookieSuffix(req)}`);
 }
 
 export function getSessionUserId(req: VercelRequest): number | null {

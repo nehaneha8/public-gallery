@@ -60,7 +60,7 @@ export default function AccessibleListFallback({ forced }: { forced: boolean }) 
           </div>
           <img
             src={selected.src}
-            alt={selected.title}
+            alt={selected.title || 'Untitled'}
             style={{
               display: 'block',
               width: '100%',
@@ -71,7 +71,7 @@ export default function AccessibleListFallback({ forced }: { forced: boolean }) 
             }}
           />
           <div style={{ marginTop: 16 }}>
-            <div style={{ fontSize: 20 }}>{selected.title}</div>
+            <div style={{ fontSize: 20 }}>{selected.title || 'Untitled'}</div>
             {selected.blurb && (
               <div style={{ fontSize: 14, opacity: 0.75, marginTop: 6 }}>{selected.blurb}</div>
             )}
@@ -124,7 +124,7 @@ export default function AccessibleListFallback({ forced }: { forced: boolean }) 
             >
               <img
                 src={a.src}
-                alt={a.title}
+                alt={a.title || 'Untitled'}
                 style={{
                   width: 120,
                   height: 120,
@@ -134,7 +134,7 @@ export default function AccessibleListFallback({ forced }: { forced: boolean }) 
                 }}
               />
               <figcaption>
-                <div style={{ fontSize: 16 }}>{a.title}</div>
+                <div style={{ fontSize: 16 }}>{a.title || 'Untitled'}</div>
                 {a.blurb && <div style={{ fontSize: 13, opacity: 0.7 }}>{a.blurb}</div>}
               </figcaption>
             </figure>

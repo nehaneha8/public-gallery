@@ -45,6 +45,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   `;
   const user = result.rows[0] as { id: number; slug: string };
 
-  setSessionCookie(res, signSession(user.id));
+  setSessionCookie(req, res, signSession(user.id));
   return res.status(201).json({ slug: user.slug });
 }

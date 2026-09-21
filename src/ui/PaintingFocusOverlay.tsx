@@ -60,7 +60,7 @@ export default function PaintingFocusOverlay() {
           textAlign: 'center',
         }}
       >
-        <div style={{ fontSize: 18, letterSpacing: 0.5 }}>{artwork?.title ?? ''}</div>
+        {artwork?.title && <div style={{ fontSize: 18, letterSpacing: 0.5 }}>{artwork.title}</div>}
         {artwork?.blurb && (
           <div style={{ fontSize: 13, opacity: 0.75, marginTop: 6 }}>{artwork.blurb}</div>
         )}

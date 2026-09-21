@@ -83,10 +83,6 @@ function PaintingsTab({ gallery, onChange }: { gallery: GalleryConfig; onChange:
   const [error, setError] = useState<string | null>(null);
 
   const handleFile = async (file: File) => {
-    if (!title.trim()) {
-      setError('give the painting a title first');
-      return;
-    }
     setBusy(true);
     setError(null);
     try {
@@ -105,7 +101,7 @@ function PaintingsTab({ gallery, onChange }: { gallery: GalleryConfig; onChange:
   return (
     <div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24, padding: 16, border: '1px solid rgba(255,176,102,0.2)', borderRadius: 6 }}>
-        <input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} />
+        <input placeholder="Title (optional)" value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} />
         <input
           placeholder="Description (optional)"
           value={description}
@@ -136,9 +132,9 @@ function PaintingsTab({ gallery, onChange }: { gallery: GalleryConfig; onChange:
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 16 }}>
         {gallery.artworks.map((a) => (
           <div key={a.id} style={{ border: '1px solid rgba(255,176,102,0.15)', borderRadius: 6, overflow: 'hidden' }}>
-            <img src={a.src} alt={a.title} style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover' }} />
+            <img src={a.src} alt={a.title || 'Untitled'} style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover' }} />
             <div style={{ padding: '8px 10px', fontSize: 13 }}>
-              <div>{a.title}</div>
+              <div style={!a.title ? { opacity: 0.5, fontStyle: 'italic' } : undefined}>{a.title || 'Untitled'}</div>
               <div style={{ opacity: 0.6, fontSize: 11 }}>{a.size}</div>
               <button
                 onClick={() => api.deleteArtwork(Number(a.id)).then(onChange)}

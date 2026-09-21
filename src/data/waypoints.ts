@@ -41,3 +41,27 @@ export function getNearestWaypointId(position: [number, number, number]): string
   }
   return bestId;
 }
+
+// Like getNearestWaypointId, but only considers waypoints no further into
+// the hallway than `position` (i.e. at the same depth or closer to the
+// entrance). Every waypoint's lookAt faces deeper into the hallway (more
+// negative Z), so a checkpoint picked this way still faces toward — and
+// keeps in view — whatever's at `position`, rather than one past it that
+// would face away, leaving it behind the camera. Used when returning from
+// a painting so it stays visible after stepping back.
+export function getNearestWaypointBehind(position: [number, number, number]): string {
+  const candidates = waypoints.filter((wp) => wp.position[2] >= position[2]);
+  const pool = candidates.length > 0 ? candidates : waypoints;
+  let bestId = pool[0]?.id ?? 'entrance';
+  let bestDist = Infinity;
+  for (const wp of pool) {
+    const dz = wp.position[2] - position[2];
+    const dx = wp.position[0] - position[0];
+    const dist = dx * dx + dz * dz;
+    if (dist < bestDist) {
+      bestDist = dist;
+      bestId = wp.id;
+    }
+  }
+  return bestId;
+}

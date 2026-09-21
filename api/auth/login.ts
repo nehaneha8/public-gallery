@@ -18,6 +18,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) return res.status(401).json({ error: 'invalid email or password' });
 
-  setSessionCookie(res, signSession(user.id));
+  setSessionCookie(req, res, signSession(user.id));
   return res.status(200).json({ slug: user.slug });
 }

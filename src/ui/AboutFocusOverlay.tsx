@@ -68,7 +68,7 @@ export default function AboutFocusOverlay() {
               display: 'block',
               width: '100%',
               maxHeight: 320,
-              objectFit: 'cover',
+              objectFit: 'contain',
               borderRadius: 4,
               border: '1px solid rgba(255,176,102,0.2)',
               marginBottom: 20,
