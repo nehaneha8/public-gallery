@@ -52,7 +52,7 @@ export default function DashboardPage() {
             </button>
           </div>
         </div>
-        <p style={{ opacity: 0.6, fontSize: 13, marginBottom: 28 }}>usable-gallery.vercel.app/g/{slug}</p>
+        <p style={{ opacity: 0.6, fontSize: 13, marginBottom: 28 }}>public-gallery-chi.vercel.app/g/{slug}</p>
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 32, borderBottom: '1px solid rgba(255,176,102,0.2)' }}>
           {(['paintings', 'about'] as Tab[]).map((t) => (
@@ -65,17 +65,12 @@ export default function DashboardPage() {
                 color: tab === t ? '#ffb066' : '#f0e6d8',
               }}
             >
-              {t === 'paintings' ? 'Paintings' : 'About Me'}
+              {t === 'paintings' ? 'Art' : 'About Me'}
             </button>
           ))}
         </div>
 
-        {tab === 'paintings' && (
-          <>
-            <PaintingsSection gallery={gallery} onChange={reload} />
-            <SketchbookSection gallery={gallery} onChange={reload} />
-          </>
-        )}
+        {tab === 'paintings' && <ArtSection gallery={gallery} onChange={reload} />}
         {tab === 'about' && <AboutTab gallery={gallery} onChange={reload} />}
 
         <DangerZone onCleared={reload} />
@@ -253,7 +248,25 @@ function DangerZone({ onCleared }: { onCleared: () => void }) {
   );
 }
 
-function PaintingsSection({ gallery, onChange }: { gallery: GalleryConfig; onChange: () => void }) {
+function ArtSection({ gallery, onChange }: { gallery: GalleryConfig; onChange: () => void }) {
+  const paintings = usePaintingsManager(gallery, onChange);
+  const sketchbook = useSketchbookManager(gallery, onChange);
+
+  return (
+    <div>
+      {paintings.form}
+      {sketchbook.form}
+
+      <div style={sectionLabelStyle}>Paintings</div>
+      {paintings.grid}
+
+      <div style={{ ...sectionLabelStyle, marginTop: 48 }}>Sketchbook</div>
+      {sketchbook.grid}
+    </div>
+  );
+}
+
+function usePaintingsManager(gallery: GalleryConfig, onChange: () => void) {
   const [formOpen, setFormOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -261,7 +274,6 @@ function PaintingsSection({ gallery, onChange }: { gallery: GalleryConfig; onCha
   const [pendingImage, setPendingImage] = useState<{ url: string; aspectRatio: number } | null>(null);
   const [uploading, setUploading] = useState(false);
   const [adding, setAdding] = useState(false);
-  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [coverBusyId, setCoverBusyId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -286,36 +298,6 @@ function PaintingsSection({ gallery, onChange }: { gallery: GalleryConfig; onCha
     } finally {
       setUploading(false);
     }
-  };
-
-  // Bulk upload: each file becomes its own painting right away (blank
-  // title, medium size) — reviewing/renaming happens afterward via each
-  // card's Edit button, rather than filling in fields per file up front.
-  const handleBulkFiles = async (files: File[]) => {
-    setUploading(true);
-    setError(null);
-    setBulkProgress({ done: 0, total: files.length });
-    let failed = 0;
-    for (const file of files) {
-      try {
-        const { url, aspectRatio } = await api.uploadImage(file);
-        await api.createArtwork({ title: '', size: 'medium', imageUrl: url, aspectRatio });
-      } catch {
-        failed += 1;
-      }
-      setBulkProgress((p) => (p ? { ...p, done: p.done + 1 } : p));
-    }
-    setUploading(false);
-    setBulkProgress(null);
-    if (failed > 0) setError(`${failed} of ${files.length} photos failed to upload.`);
-    else closeForm();
-    onChange();
-  };
-
-  const handleFileSelect = (fileList: FileList) => {
-    const files = Array.from(fileList);
-    if (files.length > 1) handleBulkFiles(files);
-    else handleFile(files[0]);
   };
 
   const handleAdd = async () => {
@@ -353,7 +335,7 @@ function PaintingsSection({ gallery, onChange }: { gallery: GalleryConfig; onCha
 
   const editingArtwork = gallery.artworks.find((a) => a.id === editingId) ?? null;
 
-  return (
+  const form = (
     <div>
       <p style={{ opacity: 0.7, fontSize: 13, marginBottom: 20 }}>
         The paintings in your hallway. Star one to use as your gallery's cover photo — or upload your own
@@ -362,15 +344,11 @@ function PaintingsSection({ gallery, onChange }: { gallery: GalleryConfig; onCha
 
       {!formOpen ? (
         <button onClick={() => setFormOpen(true)} style={{ ...ghostButton, marginBottom: 28 }}>
-          + Add paintings
+          + Add a painting
         </button>
       ) : (
         <div style={formPanelStyle}>
-          {bulkProgress ? (
-            <div style={{ fontSize: 13, opacity: 0.8 }}>
-              Uploading {bulkProgress.done} of {bulkProgress.total}…
-            </div>
-          ) : pendingImage ? (
+          {pendingImage ? (
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
               <img src={pendingImage.url} alt="" style={formPreviewStyle} />
               <label style={{ ...ghostButton, fontSize: 12 }}>
@@ -385,61 +363,52 @@ function PaintingsSection({ gallery, onChange }: { gallery: GalleryConfig; onCha
               </label>
             </div>
           ) : (
-            <>
-              <label style={{ ...ghostButton, textAlign: 'center', display: 'block' }}>
-                {uploading ? 'Uploading…' : 'Choose image(s) to upload'}
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  disabled={uploading}
-                  onChange={(e) => e.target.files && e.target.files.length > 0 && handleFileSelect(e.target.files)}
-                  style={{ display: 'none' }}
-                />
-              </label>
-              <p style={{ fontSize: 12, opacity: 0.5, margin: 0 }}>
-                Select more than one photo to bulk-upload them — each becomes its own painting with a
-                blank title, which you can fill in afterward from its Edit button below.
-              </p>
-            </>
-          )}
-          {pendingImage && (
-            <>
-              <input placeholder="Title (optional)" value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} />
+            <label style={{ ...ghostButton, textAlign: 'center', display: 'block' }}>
+              {uploading ? 'Uploading…' : 'Choose image to upload'}
               <input
-                placeholder="Description (optional)"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                style={inputStyle}
+                type="file"
+                accept="image/*"
+                disabled={uploading}
+                onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+                style={{ display: 'none' }}
               />
-              <div style={{ display: 'flex', gap: 16, fontSize: 13 }}>
-                {(['small', 'medium', 'large'] as ArtworkSize[]).map((s) => (
-                  <label key={s} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-                    <input type="radio" name="size" checked={size === s} onChange={() => setSize(s)} />
-                    {s}
-                  </label>
-                ))}
-              </div>
-            </>
+            </label>
           )}
+          <input placeholder="Title (optional)" value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} />
+          <input
+            placeholder="Description (optional)"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            style={inputStyle}
+          />
+          <div style={{ display: 'flex', gap: 16, fontSize: 13 }}>
+            {(['small', 'medium', 'large'] as ArtworkSize[]).map((s) => (
+              <label key={s} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                <input type="radio" name="size" checked={size === s} onChange={() => setSize(s)} />
+                {s}
+              </label>
+            ))}
+          </div>
           {error && <div style={{ color: '#ff9d9d', fontSize: 13 }}>{error}</div>}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-            <button onClick={closeForm} disabled={adding || uploading} style={ghostButton}>
+            <button onClick={closeForm} disabled={adding} style={ghostButton}>
               Cancel
             </button>
-            {pendingImage && (
-              <button
-                onClick={handleAdd}
-                disabled={!pendingImage || adding || uploading}
-                style={{ ...ghostButton, opacity: !pendingImage || adding || uploading ? 0.4 : 1 }}
-              >
-                {adding ? 'Adding…' : 'Add painting'}
-              </button>
-            )}
+            <button
+              onClick={handleAdd}
+              disabled={!pendingImage || adding || uploading}
+              style={{ ...ghostButton, opacity: !pendingImage || adding || uploading ? 0.4 : 1 }}
+            >
+              {adding ? 'Adding…' : 'Add painting'}
+            </button>
           </div>
         </div>
       )}
+    </div>
+  );
 
+  const grid = (
+    <div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 16 }}>
         {gallery.artworks.map((a) => (
           <div key={a.id} style={{ border: '1px solid rgba(255,176,102,0.15)', borderRadius: 6, overflow: 'hidden' }}>
@@ -478,6 +447,8 @@ function PaintingsSection({ gallery, onChange }: { gallery: GalleryConfig; onCha
       )}
     </div>
   );
+
+  return { form, grid };
 }
 
 function EditArtworkModal({
@@ -547,7 +518,7 @@ function EditArtworkModal({
   );
 }
 
-function SketchbookSection({ gallery, onChange }: { gallery: GalleryConfig; onChange: () => void }) {
+function useSketchbookManager(gallery: GalleryConfig, onChange: () => void) {
   const [formOpen, setFormOpen] = useState(false);
   const [pendingImage, setPendingImage] = useState<{ url: string } | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -588,11 +559,9 @@ function SketchbookSection({ gallery, onChange }: { gallery: GalleryConfig; onCh
     }
   };
 
-  return (
+  const form = (
     <div style={{ marginTop: 48 }}>
-      <div style={{ fontSize: 13, letterSpacing: 0.5, opacity: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>
-        Sketchbook
-      </div>
+      <div style={sectionLabelStyle}>Sketchbook</div>
       <p style={{ opacity: 0.7, fontSize: 13, marginBottom: 20 }}>
         Sketches shown in order in your hallway's sketchbook — just the images, no titles needed.
       </p>
@@ -644,22 +613,26 @@ function SketchbookSection({ gallery, onChange }: { gallery: GalleryConfig; onCh
           </div>
         </div>
       )}
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 16 }}>
-        {gallery.sketches.map((s) => (
-          <div key={s.id} style={{ border: '1px solid rgba(255,176,102,0.15)', borderRadius: 6, overflow: 'hidden' }}>
-            <img src={s.src} alt="" style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover' }} />
-            <button
-              onClick={() => api.deleteSketch(Number(s.id)).then(onChange)}
-              style={{ ...ghostButton, width: '100%', fontSize: 11, padding: '4px 0', borderRadius: 0, borderLeft: 'none', borderRight: 'none', borderBottom: 'none' }}
-            >
-              Remove
-            </button>
-          </div>
-        ))}
-      </div>
     </div>
   );
+
+  const grid = (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 16 }}>
+      {gallery.sketches.map((s) => (
+        <div key={s.id} style={{ border: '1px solid rgba(255,176,102,0.15)', borderRadius: 6, overflow: 'hidden' }}>
+          <img src={s.src} alt="" style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover' }} />
+          <button
+            onClick={() => api.deleteSketch(Number(s.id)).then(onChange)}
+            style={{ ...ghostButton, width: '100%', fontSize: 11, padding: '4px 0', borderRadius: 0, borderLeft: 'none', borderRight: 'none', borderBottom: 'none' }}
+          >
+            Remove
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+
+  return { form, grid };
 }
 
 function AboutTab({ gallery, onChange }: { gallery: GalleryConfig; onChange: () => void }) {
@@ -782,6 +755,14 @@ const ghostButton: CSSProperties = {
   fontFamily: 'inherit',
   fontSize: 13,
   cursor: 'pointer',
+};
+
+const sectionLabelStyle: CSSProperties = {
+  fontSize: 13,
+  letterSpacing: 0.5,
+  opacity: 0.5,
+  textTransform: 'uppercase',
+  marginBottom: 10,
 };
 
 const formPanelStyle: CSSProperties = {

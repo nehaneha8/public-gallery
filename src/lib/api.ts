@@ -11,10 +11,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return data as T;
 }
 
-export function signup(email: string, password: string, displayName: string) {
+export function signup(email: string, password: string, username: string) {
   return request<{ slug: string }>('/api/auth/signup', {
     method: 'POST',
-    body: JSON.stringify({ email, password, displayName }),
+    body: JSON.stringify({ email, password, username }),
   });
 }
 

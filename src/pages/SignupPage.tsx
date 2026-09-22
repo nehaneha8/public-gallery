@@ -5,7 +5,7 @@ import { signup } from '../lib/api';
 import { pageStyle, formStyle, inputStyle, submitStyle, linkStyle } from './LoginPage';
 
 export default function SignupPage() {
-  const [displayName, setDisplayName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +16,7 @@ export default function SignupPage() {
     setError(null);
     setBusy(true);
     try {
-      await signup(email, password, displayName);
+      await signup(email, password, username);
       navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'something went wrong');
@@ -29,14 +29,21 @@ export default function SignupPage() {
     <div style={pageStyle}>
       <form onSubmit={handleSubmit} style={formStyle}>
         <h1 style={{ ...GLOW_TEXT_STYLE, fontSize: 24, margin: '0 0 8px' }}>Create your gallery</h1>
-        <input
-          type="text"
-          placeholder="Your name"
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
-          required
-          style={inputStyle}
-        />
+        <div>
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            pattern="[a-zA-Z0-9-]{3,30}"
+            style={inputStyle}
+          />
+          <div style={{ fontSize: 11, opacity: 0.55, marginTop: 4 }}>
+            Your gallery's address: yoursite.com/g/{username || 'username'} — letters, numbers, and hyphens
+            only.
+          </div>
+        </div>
         <input
           type="email"
           placeholder="Email"
