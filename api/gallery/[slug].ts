@@ -6,9 +6,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'method not allowed' });
 
   const slug = String(req.query.slug ?? '');
-  const userRes = await sql`SELECT id, display_name, gallery_title FROM users WHERE slug = ${slug}`;
+  const userRes = await sql`
+    SELECT id, display_name, gallery_title, cover_artwork_id, cover_photo_url FROM users WHERE slug = ${slug}
+  `;
   const user = userRes.rows[0] as
-    | { id: number; display_name: string; gallery_title: string | null }
+    | {
+        id: number;
+        display_name: string;
+        gallery_title: string | null;
+        cover_artwork_id: number | null;
+        cover_photo_url: string | null;
+      }
     | undefined;
   if (!user) return res.status(404).json({ error: 'gallery not found' });
 
@@ -27,6 +35,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     slug,
     displayName: user.display_name,
     title: resolveGalleryTitle(user.display_name, user.gallery_title),
+    coverArtworkId: user.cover_artwork_id !== null ? String(user.cover_artwork_id) : null,
+    coverPhotoUrl: user.cover_photo_url,
     artworks: artworksRes.rows.map((a) => ({
       id: String(a.id),
       title: a.title,

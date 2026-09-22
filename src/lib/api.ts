@@ -67,6 +67,10 @@ export function createArtwork(input: {
   return request<{ id: number }>('/api/gallery/artworks', { method: 'POST', body: JSON.stringify(input) });
 }
 
+export function updateArtwork(id: number, input: { title?: string; description?: string; size?: ArtworkSize }) {
+  return request<{ ok: true }>('/api/gallery/artworks', { method: 'PATCH', body: JSON.stringify({ id, ...input }) });
+}
+
 export function deleteArtwork(id: number) {
   return request<{ ok: true }>(`/api/gallery/artworks?id=${id}`, { method: 'DELETE' });
 }
@@ -87,4 +91,21 @@ export function saveAbout(input: { optedIn: boolean; photoUrl?: string; prompts:
 // account itself — the user stays logged in.
 export function clearGallery() {
   return request<{ ok: true }>('/api/gallery/clear', { method: 'DELETE' });
+}
+
+// artworkId: null resets to the default (the first-uploaded painting).
+export function setCoverArtwork(artworkId: string | null) {
+  return request<{ coverArtworkId: string | null; coverPhotoUrl: string | null }>('/api/gallery/cover', {
+    method: 'PUT',
+    body: JSON.stringify({ artworkId }),
+  });
+}
+
+// photoUrl: null removes the directly-uploaded cover photo, falling back
+// to the starred-painting logic above.
+export function setCoverPhoto(photoUrl: string | null) {
+  return request<{ coverArtworkId: string | null; coverPhotoUrl: string | null }>('/api/gallery/cover', {
+    method: 'PUT',
+    body: JSON.stringify({ photoUrl }),
+  });
 }

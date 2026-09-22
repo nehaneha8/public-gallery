@@ -45,3 +45,14 @@ CREATE TABLE IF NOT EXISTS sketches (
 
 CREATE INDEX IF NOT EXISTS artworks_user_id_idx ON artworks(user_id, sort_order);
 CREATE INDEX IF NOT EXISTS sketches_user_id_idx ON sketches(user_id, sort_order);
+
+-- NULL = use the default (the first-uploaded painting); set once the
+-- artist picks a specific painting as their gallery's cover photo. Must
+-- come after `artworks` exists (the FK target) — ON DELETE SET NULL means
+-- deleting the chosen cover painting just falls back to the default.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS cover_artwork_id INTEGER REFERENCES artworks(id) ON DELETE SET NULL;
+
+-- A directly-uploaded gallery cover photo — takes precedence over
+-- cover_artwork_id (a starred painting), which in turn takes precedence
+-- over the default (first-uploaded painting).
+ALTER TABLE users ADD COLUMN IF NOT EXISTS cover_photo_url TEXT;

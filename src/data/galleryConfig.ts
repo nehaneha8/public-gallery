@@ -35,6 +35,13 @@ export interface GalleryConfig {
   // but the artist can fully customize it from the dashboard; always a
   // ready-to-display string, resolved server-side.
   title: string;
+  // Which artwork (by id) is the directory-listing cover photo — null
+  // means "use the default" (the first-uploaded painting). Only
+  // meaningful to the dashboard's own UI; not used by the 3D scene.
+  coverArtworkId: string | null;
+  // A directly-uploaded cover photo — takes precedence over coverArtworkId
+  // when resolving the directory-listing thumbnail (see api/galleries.ts).
+  coverPhotoUrl: string | null;
   artworks: ArtworkInput[];
   sketches: SketchInput[];
   about: AboutInput | null;

@@ -10,7 +10,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // show up here until they upload something again.
   const result = await sql`
     SELECT u.slug, u.display_name, u.gallery_title,
-      (SELECT image_url FROM artworks WHERE user_id = u.id ORDER BY sort_order ASC LIMIT 1) AS thumbnail
+      COALESCE(
+        u.cover_photo_url,
+        (SELECT image_url FROM artworks WHERE id = u.cover_artwork_id),
+        (SELECT image_url FROM artworks WHERE user_id = u.id ORDER BY sort_order ASC LIMIT 1)
+      ) AS thumbnail
     FROM users u
     WHERE EXISTS (SELECT 1 FROM artworks WHERE user_id = u.id)
        OR EXISTS (SELECT 1 FROM sketches WHERE user_id = u.id)
